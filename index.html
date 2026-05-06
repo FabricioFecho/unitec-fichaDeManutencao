@@ -56,6 +56,45 @@
   margin-bottom: 20px;
 }
 
+.tipo-servico {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.opcao-servico {
+  cursor: pointer;
+}
+
+.opcao-servico input {
+  display: none;
+}
+
+.opcao-servico span {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.opcao-servico span:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.opcao-servico input:checked + span {
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  border-color: transparent;
+  box-shadow: 0 5px 15px rgba(56,189,248,0.4);
+}
+
+
+
+
 .topo input {
   flex: 1;
   padding: 10px;
@@ -269,6 +308,32 @@ p {
   background: #28a745;
 }
 
+
+.assinatura-box {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#assinaturaCanvas {
+  width: 100%;
+  max-width: 500px;
+  height: 200px;
+  background: #fff;
+  border-radius: 10px;
+  border: 2px dashed #ccc;
+}
+
+.assinatura-acoes button {
+  margin-top: 10px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  background: #dc3545;
+  color: #fff;
+  cursor: pointer;
+}
+
+
 /* OPCIONAL: ERRO */
 #btnEnviar.erro {
   background: #dc3545;
@@ -284,6 +349,21 @@ p {
 <div class="logo-box">
   <img src="images/imagem_2026-04-28_130703319.png" alt="Logo da empresa">
 </div>
+
+<div class="tipo-servico">
+  <label class="opcao-servico">
+    <input type="radio" name="tipo_servico" value="Manutenção">
+    <span>Manutenção</span>
+  </label>
+
+  <label class="opcao-servico">
+    <input type="radio" name="tipo_servico" value="Ordem de Serviço">
+    <span>Ordem de Serviço</span>
+  </label>
+</div>
+
+
+
 
   <div class="topo">
     <input type="text" name="cliente" placeholder="Cliente">
@@ -899,6 +979,7 @@ p {
 <p style="font-size: 12px; color: gray;">
   O OBS não poderá ser enviado para o síndico (cliente), somente para a empresa.
 </p>
+
 <div class="assinaturas">
   <div>
     <label>Nome do Funcionário</label>
@@ -910,6 +991,18 @@ p {
     <input type="text" name="sindico" placeholder="Nome completo do síndico:">
   </div>
 </div>
+
+<h3>Assinatura</h3>
+
+<div class="assinatura-box">
+  <canvas id="assinaturaCanvas" width="500" height="200"></canvas>
+  
+  <div class="assinatura-acoes">
+    <button type="button" onclick="limparAssinatura()">Limpar</button>
+  </div>
+</div>
+
+</div>
   <button id="btnEnviar" type="button" onclick="enviarDados()">
   <span class="texto">Enviar</span>
   <span class="loader"></span>
@@ -918,15 +1011,52 @@ p {
 
 
 <script>
-const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbygsA68RAGlJHtFqofRU-HEvo2877ryQHYcXDheF8iXFZdOS_qnPkKLsV1GZkvPA0zv8Q/exec";
+document.addEventListener("DOMContentLoaded", function () {
 
-// Pega valor de radio
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxwoms0UiOLbaM7MRZ_U0sEaOD9m-8qiQJicEmNqBaWFTEuejQihIDqgf4IqCm7rh982A/exec";
+
+// ===== CANVAS =====
+const canvas = document.getElementById("assinaturaCanvas");
+
+let ctx = null;
+let desenhando = false;
+
+if (canvas) {
+  ctx = canvas.getContext("2d");
+
+  canvas.addEventListener("mousedown", () => desenhando = true);
+  canvas.addEventListener("mouseup", () => {
+    desenhando = false;
+    ctx.beginPath();
+  });
+
+  canvas.addEventListener("mousemove", function(e) {
+    if (!desenhando) return;
+
+    const rect = canvas.getBoundingClientRect();
+
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#000";
+
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  });
+}
+
+window.limparAssinatura = function() {
+  if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+};
+
+// ===== RADIO =====
 function getRadioValue(name) {
   const selected = document.querySelector(`input[name="${name}"]:checked`);
   return selected ? selected.value : "";
 }
 
-// Coleta dados
+// ===== COLETAR =====
 function coletarDados() {
   let dados = {};
 
@@ -948,26 +1078,26 @@ function coletarDados() {
     dados["observacao_" + i] = t.value;
   });
 
+  dados["assinatura"] = canvas ? canvas.toDataURL("image/png") : "";
+
   return dados;
 }
 
-// ENVIAR
-function enviarDados() {
+// ===== ENVIAR =====
+window.enviarDados = function() {
 
   const btn = document.getElementById("btnEnviar");
   const texto = btn.querySelector(".texto");
 
   const dados = coletarDados();
 
-  // limpa erros antigos
   document.querySelectorAll('.erro').forEach(el => el.classList.remove('erro'));
   btn.classList.remove("sucesso", "erro");
 
   let primeiroErro = null;
   let temErro = false;
 
-  // ===== CAMPOS TEXTO =====
-  const camposObrigatorios = ['cliente','data','hora','funcionario','sindico'];
+  const camposObrigatorios = ['tipo_servico', 'cliente', 'data', 'hora', 'funcionario', 'sindico'];
 
   for (let nome of camposObrigatorios) {
     let campo = document.querySelector(`[name="${nome}"]`);
@@ -979,43 +1109,40 @@ function enviarDados() {
     }
   }
 
-  // ===== TEXTAREAS =====
   document.querySelectorAll('textarea').forEach(t => {
-    if (!t.value || t.value.trim() === "") {
+    if (!t.value.trim()) {
       t.classList.add('erro');
       if (!primeiroErro) primeiroErro = t;
       temErro = true;
     }
   });
 
-  // ===== RADIOS =====
   let radios = new Set();
-
   document.querySelectorAll('input[type="radio"]').forEach(r => {
     radios.add(r.name);
   });
 
-  radios.forEach(nome => {
+    radios.forEach(nome => {
     if (!dados[nome]) {
-
-      let linha = document.querySelector(`input[name="${nome}"]`).closest('.linha');
-
-      if (linha) {
-        linha.classList.add('erro');
-        if (!primeiroErro) primeiroErro = linha;
+      // Tenta encontrar a div .linha ou a div .tipo-servico
+      let containerErro = document.querySelector(`input[name="${nome}"]`).closest('.linha') || 
+                           document.querySelector(`input[name="${nome}"]`).closest('.tipo-servico');
+      
+      if (containerErro) {
+        containerErro.classList.add('erro');
+        if (!primeiroErro) primeiroErro = containerErro;
       }
-
       temErro = true;
     }
   });
 
-  // ===== SE TIVER ERRO → NÃO ENVIA =====
-  if (temErro) {
+    if (temErro) {
+    if (primeiroErro) {
     primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     return;
-  }
+}
 
-  // ===== LOADING =====
   btn.classList.add("loading");
   texto.textContent = "";
 
@@ -1033,15 +1160,11 @@ function enviarDados() {
     btn.classList.add("erro");
     texto.textContent = "Erro ao enviar";
   });
-}
+
+};
+
+});
 </script>
-
-
-
-
-
-
-
 
 </body>
 </html>
