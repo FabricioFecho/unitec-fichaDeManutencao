@@ -316,11 +316,12 @@ p {
 
 #assinaturaCanvas {
   width: 100%;
-  max-width: 500px;
   height: 200px;
   background: #fff;
   border-radius: 10px;
   border: 2px dashed #ccc;
+  display: block;
+  touch-action: none;
 }
 
 .assinatura-acoes button {
@@ -332,6 +333,43 @@ p {
   color: #fff;
   cursor: pointer;
 }
+.assinatura-linha {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.assinatura-area {
+  flex: 1;
+  min-width: 300px;
+}
+
+.data-visita {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+}
+
+.data-visita label {
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.data-visita input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.titulo-assinatura {
+  text-align: left;
+  margin-left: 275px;
+  margin-bottom: 15px;
+}
 
 
 /* OPCIONAL: ERRO */
@@ -339,6 +377,106 @@ p {
   background: #dc3545;
 }
 
+body {
+  overflow-x: hidden;
+}
+
+/* =========================
+   RESPONSIVIDADE MOBILE
+========================= */
+
+@media (max-width: 768px) {
+
+  body {
+    padding: 10px;
+    background-attachment: scroll;
+  }
+
+  .container {
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  .topo {
+    flex-direction: column;
+  }
+
+  .tipo-servico {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .opcao-servico span {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .linha {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .linha label {
+    margin-bottom: 5px;
+  }
+
+  .opcoes {
+    justify-content: center;
+  }
+
+  textarea {
+    height: 120px;
+    font-size: 16px;
+  }
+
+  input,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+
+  .assinaturas {
+    flex-direction: column;
+  }
+
+  .assinaturas div:first-child {
+    margin-right: 0;
+  }
+
+  .assinatura-linha {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .assinatura-area {
+    min-width: 100%;
+  }
+
+  .titulo-assinatura {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  #assinaturaCanvas {
+    width: 100%;
+    height: 180px;
+    touch-action: none;
+  }
+
+  .data-visita {
+    width: 100%;
+  }
+
+  .logo-box img {
+    max-width: 180px;
+  }
+
+  h1, h3 {
+    font-size: 20px;
+  }
+}
 </style>
 </head>
 
@@ -980,33 +1118,46 @@ p {
   O OBS não poderá ser enviado para o síndico (cliente), somente para a empresa.
 </p>
 
-<div class="assinaturas">
-  <div>
-    <label>Nome do Funcionário</label>
-    <input type="text" name="funcionario" placeholder="Nome completo do funcionário:">
+<div id="areaPrint">
+
+  <div class="assinaturas">
+    <div>
+      <label>Nome do Funcionário</label>
+      <input type="text" name="funcionario" placeholder="Nome completo do funcionário:">
+    </div>
+
+    <div>
+      <label>Nome do Síndico</label>
+      <input type="text" name="sindico" placeholder="Nome completo do síndico:">
+    </div>
   </div>
 
-  <div>
-    <label>Nome do Síndico</label>
-    <input type="text" name="sindico" placeholder="Nome completo do síndico:">
+  <h3 class="titulo-assinatura">Assinatura</h3>
+
+  <div class="assinatura-box">
+
+  <div class="assinatura-linha">
+
+    <!-- CANVAS -->
+    <div class="assinatura-area">
+      <canvas id="assinaturaCanvas" width="500" height="200"></canvas>
+    </div>
+
+    <!-- DATA -->
+    <div class="data-visita">
+      <label>Data do dia da visita</label>
+      <input type="date" id="dataVisita">
+    </div>
+
   </div>
-</div>
 
-<h3>Assinatura</h3>
-
-<div class="assinatura-box">
-  <canvas id="assinaturaCanvas" width="500" height="200"></canvas>
-  
   <div class="assinatura-acoes">
     <button type="button" onclick="limparAssinatura()">Limpar</button>
   </div>
-</div>
-
-</div>
-  <button id="btnEnviar" type="button" onclick="enviarDados()">
+  <button id="btnEnviar" onclick="enviarDados()">
   <span class="texto">Enviar</span>
-  <span class="loader"></span>
-</button>
+  <div class="loader"></div>
+    </button>
 </div>
 
 
@@ -1024,26 +1175,75 @@ let desenhando = false;
 if (canvas) {
   ctx = canvas.getContext("2d");
 
-  canvas.addEventListener("mousedown", () => desenhando = true);
-  canvas.addEventListener("mouseup", () => {
-    desenhando = false;
-    ctx.beginPath();
-  });
+  const ratio = window.devicePixelRatio || 1;
 
-  canvas.addEventListener("mousemove", function(e) {
-    if (!desenhando) return;
+  canvas.width = canvas.offsetWidth * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
 
-    const rect = canvas.getBoundingClientRect();
+ctx.scale(ratio, ratio);
 
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#000";
+  function pegarPosicao(e) {
 
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-  });
+  const rect = canvas.getBoundingClientRect();
+
+  if (e.touches) {
+    return {
+      x: e.touches[0].clientX - rect.left,
+      y: e.touches[0].clientY - rect.top
+    };
+  }
+
+  return {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top
+  };
+}
+
+function iniciarDesenho(e) {
+  desenhando = true;
+
+  const pos = pegarPosicao(e);
+
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+
+  e.preventDefault();
+}
+
+function pararDesenho() {
+  desenhando = false;
+  ctx.beginPath();
+}
+
+function desenhar(e) {
+
+  if (!desenhando) return;
+
+  const pos = pegarPosicao(e);
+
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#000";
+
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+
+  e.preventDefault();
+}
+
+/* MOUSE */
+    canvas.addEventListener("mousedown", iniciarDesenho);
+    canvas.addEventListener("mouseup", pararDesenho);
+    canvas.addEventListener("mousemove", desenhar);
+
+/* TOUCH CELULAR */
+    canvas.addEventListener("touchstart", iniciarDesenho);
+    canvas.addEventListener("touchend", pararDesenho);
+    canvas.addEventListener("touchmove", desenhar);
+    
 }
 
 window.limparAssinatura = function() {
@@ -1066,6 +1266,7 @@ function coletarDados() {
   });
 
   let radios = new Set();
+
   document.querySelectorAll('input[type="radio"]').forEach(r => {
     radios.add(r.name);
   });
@@ -1080,7 +1281,19 @@ function coletarDados() {
 
   dados["assinatura"] = canvas ? canvas.toDataURL("image/png") : "";
 
-  return dados;
+  // ===== PRINT DA TELA INTEIRA =====
+  return html2canvas(document.body, {
+    scale: 3,
+    useCORS: true,
+    scrollY: -window.scrollY,
+    windowWidth: document.body.scrollWidth,
+    windowHeight: document.body.scrollHeight
+  }).then(canvasPrint => {
+
+    dados["printOS"] = canvasPrint.toDataURL("image/png");
+
+    return dados;
+  });
 }
 
 // ===== ENVIAR =====
@@ -1089,7 +1302,7 @@ window.enviarDados = function() {
   const btn = document.getElementById("btnEnviar");
   const texto = btn.querySelector(".texto");
 
-  const dados = coletarDados();
+  coletarDados().then(dados => {
 
   document.querySelectorAll('.erro').forEach(el => el.classList.remove('erro'));
   btn.classList.remove("sucesso", "erro");
@@ -1146,25 +1359,29 @@ window.enviarDados = function() {
   btn.classList.add("loading");
   texto.textContent = "";
 
-  fetch(URL_SCRIPT, {
-    method: "POST",
-    body: JSON.stringify(dados)
-  })
-  .then(() => {
-    btn.classList.remove("loading");
-    btn.classList.add("sucesso");
-    texto.textContent = "Enviado com sucesso";
-  })
-  .catch(() => {
-    btn.classList.remove("loading");
-    btn.classList.add("erro");
-    texto.textContent = "Erro ao enviar";
-  });
-
-};
-
+fetch(URL_SCRIPT, {
+  method: "POST",
+  body: JSON.stringify(dados)
+})
+.then(() => {
+  btn.classList.remove("loading");
+  btn.classList.add("sucesso");
+  texto.textContent = "Enviado com sucesso";
+})
+.catch(() => {
+  btn.classList.remove("loading");
+  btn.classList.add("erro");
+  texto.textContent = "Erro ao enviar";
 });
+
+}); // fecha coletarDados().then
+
+}; // fecha enviarDados
+
+}); // fecha DOMContentLoaded
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 </body>
 </html>
