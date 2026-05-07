@@ -476,6 +476,17 @@ body {
   h1, h3 {
     font-size: 20px;
   }
+  .tipo-servico.erro {
+  border: 2px solid red;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+input.erro,
+textarea.erro {
+  border: 2px solid red !important;
+}
+
 }
 </style>
 </head>
@@ -1312,15 +1323,40 @@ window.enviarDados = function() {
 
   const camposObrigatorios = ['tipo_servico', 'cliente', 'data', 'hora', 'funcionario', 'sindico'];
 
-  for (let nome of camposObrigatorios) {
-    let campo = document.querySelector(`[name="${nome}"]`);
+for (let nome of camposObrigatorios) {
 
-    if (!dados[nome] || dados[nome].trim() === "") {
-      campo.classList.add('erro');
-      if (!primeiroErro) primeiroErro = campo;
-      temErro = true;
+  let campo = document.querySelector(`[name="${nome}"]`);
+
+  if (!dados[nome] || dados[nome].trim() === "") {
+
+    // RADIO tipo_servico
+    if (nome === "tipo_servico") {
+
+      const grupo = document.querySelector('.tipo-servico');
+
+      if (grupo) {
+        grupo.classList.add('erro');
+
+        if (!primeiroErro) {
+          primeiroErro = grupo;
+        }
+      }
+
+    } else {
+
+      if (campo) {
+        campo.classList.add('erro');
+
+        if (!primeiroErro) {
+          primeiroErro = campo;
+        }
+      }
+
     }
+
+    temErro = true;
   }
+}
 
   document.querySelectorAll('textarea').forEach(t => {
     if (!t.value.trim()) {
