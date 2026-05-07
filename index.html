@@ -377,6 +377,26 @@ p {
   background: #dc3545;
 }
 
+/* ERRO */
+.erro {
+  border: 2px solid red !important;
+}
+
+.linha.erro {
+  background: rgba(255,0,0,0.2);
+}
+
+.tipo-servico.erro {
+  border: 2px solid red;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+input.erro,
+textarea.erro {
+  border: 2px solid red !important;
+}
+
 body {
   overflow-x: hidden;
 }
@@ -476,16 +496,6 @@ body {
   h1, h3 {
     font-size: 20px;
   }
-  .tipo-servico.erro {
-  border: 2px solid red;
-  padding: 10px;
-  border-radius: 10px;
-}
-
-input.erro,
-textarea.erro {
-  border: 2px solid red !important;
-}
 
 }
 </style>
@@ -1162,13 +1172,16 @@ textarea.erro {
 
   </div>
 
-  <div class="assinatura-acoes">
-    <button type="button" onclick="limparAssinatura()">Limpar</button>
-  </div>
-  <button id="btnEnviar" onclick="enviarDados()">
-  <span class="texto">Enviar</span>
-  <div class="loader"></div>
+    <div class="assinatura-acoes">
+      <button type="button" onclick="limparAssinatura()">Limpar</button>
+    </div>
+
+    <button id="btnEnviar" onclick="enviarDados()">
+      <span class="texto">Enviar</span>
+      <div class="loader"></div>
     </button>
+
+    </div>
 </div>
 
 
@@ -1188,8 +1201,14 @@ if (canvas) {
 
   const ratio = window.devicePixelRatio || 1;
 
-  canvas.width = canvas.offsetWidth * ratio;
-  canvas.height = canvas.offsetHeight * ratio;
+  const largura = canvas.offsetWidth;
+  const altura = canvas.offsetHeight;
+
+  canvas.width = largura * ratio;
+  canvas.height = altura * ratio;
+
+  canvas.style.width = largura + "px";
+  canvas.style.height = altura + "px";
 
 ctx.scale(ratio, ratio);
 
@@ -1292,19 +1311,22 @@ function coletarDados() {
 
   dados["assinatura"] = canvas ? canvas.toDataURL("image/png") : "";
 
-  // ===== PRINT DA TELA INTEIRA =====
-  return html2canvas(document.body, {
-    scale: 3,
-    useCORS: true,
-    scrollY: -window.scrollY,
-    windowWidth: document.body.scrollWidth,
-    windowHeight: document.body.scrollHeight
-  }).then(canvasPrint => {
+// ===== PRINT DA ÁREA COMPLETA =====
+const areaPrint = document.querySelector(".container");
 
-    dados["printOS"] = canvasPrint.toDataURL("image/png");
+return html2canvas(areaPrint, {
+  scale: 3,
+  useCORS: true,
+  backgroundColor: null,
+  scrollY: -window.scrollY,
+  windowWidth: areaPrint.scrollWidth,
+  windowHeight: areaPrint.scrollHeight
+}).then(canvasPrint => {
 
-    return dados;
-  });
+  dados["printOS"] = canvasPrint.toDataURL("image/png");
+
+  return dados;
+});
 }
 
 // ===== ENVIAR =====
@@ -1359,7 +1381,7 @@ for (let nome of camposObrigatorios) {
 }
 
   document.querySelectorAll('textarea').forEach(t => {
-    if (!t.value.trim()) {
+  if (t.hasAttribute("required") && !t.value.trim()) {
       t.classList.add('erro');
       if (!primeiroErro) primeiroErro = t;
       temErro = true;
