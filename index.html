@@ -1172,6 +1172,10 @@ body {
     <input type="text" name="condominio" placeholder="Nome do condomínio:">
   </div>
 
+  <div>
+    <label>Email do Síndico</label>
+    <input type="email" name="email_sindico" placeholder="Email do síndico:">
+  </div>
 
     <div>
       <label>Nome do Funcionário Condomínio </label>
@@ -1316,7 +1320,7 @@ function getRadioValue(name) {
 function coletarDados() {
   let dados = {};
 
-  document.querySelectorAll('input[type="text"], input[type="date"], input[type="time"]').forEach((input, i) => {
+  document.querySelectorAll('input[type="text"], input[type="email"], input[type="date"], input[type="time"]').forEach((input, i) => {
     let chave = input.name || "campo_" + i;
     dados[chave] = input.value;
   });
