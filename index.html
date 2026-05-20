@@ -1172,10 +1172,6 @@ body {
     <input type="text" name="condominio" placeholder="Nome do condomínio:">
   </div>
 
-  <div>
-    <label>Email do Síndico</label>
-    <input type="email" name="email_sindico" placeholder="Email do síndico:">
-  </div>
 
     <div>
       <label>Nome do Funcionário Condomínio </label>
@@ -1345,7 +1341,7 @@ function coletarDados() {
 const areaPrint = document.querySelector(".container");
 
 return html2canvas(areaPrint, {
-  scale: 3,
+  scale: 2,
   useCORS: true,
   backgroundColor: null,
   scrollY: -window.scrollY,
@@ -1353,7 +1349,7 @@ return html2canvas(areaPrint, {
   windowHeight: areaPrint.scrollHeight
 }).then(canvasPrint => {
 
-  dados["printOS"] = canvasPrint.toDataURL("image/png");
+  dados["printOS"] = canvasPrint.toDataURL("image/jpeg", 0.7);
 
   return dados;
 });
