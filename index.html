@@ -1449,9 +1449,67 @@ fetch(URL_SCRIPT, {
   body: JSON.stringify(dados)
 })
 .then(() => {
+
   btn.classList.remove("loading");
   btn.classList.add("sucesso");
   texto.textContent = "Enviado com sucesso";
+
+  setTimeout(() => {
+
+    document.body.innerHTML = `
+      <div style="
+        min-height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        flex-direction:column;
+        background:linear-gradient(135deg,#0f172a,#1e293b);
+        color:white;
+        text-align:center;
+        padding:20px;
+      ">
+        <div style="
+          font-size:80px;
+          margin-bottom:20px;
+        ">
+          ✅
+        </div>
+
+        <h1 style="
+          margin:0;
+          font-size:42px;
+        ">
+          Ordem de Serviço Enviada
+        </h1>
+
+        <p style="
+         margin-top:15px;
+        font-size:20px;
+           opacity:.9;
+">
+  Sua solicitação foi enviada com sucesso.
+</p>
+
+<button
+  onclick="location.reload()"
+  style="
+    margin-top:30px;
+    padding:14px 30px;
+    border:none;
+    border-radius:10px;
+    background:#38bdf8;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+  "
+>
+  Nova Ordem de Serviço
+</button>
+      </div>
+    `;
+
+  }, 1000);
+
 })
 .catch(() => {
   btn.classList.remove("loading");
