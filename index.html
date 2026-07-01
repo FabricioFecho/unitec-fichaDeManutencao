@@ -95,19 +95,17 @@
 
 
 
-.topo input {
+.topo input,
+.topo select {
   flex: 1;
   padding: 10px;
-
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 8px;
   color: #fff;
-
   min-height: 44px;
   line-height: normal;
   box-sizing: border-box;
-
   -webkit-appearance: none;
   appearance: none;
 }
@@ -190,14 +188,16 @@ textarea {
 }
 
 
-.assinaturas input {
+.assinaturas input,
+.assinaturas select {
   width: 100%;
   padding: 10px;
 
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 8px;
-  color: #fff;
+  color: #000;
+  background: #fff;
   min-height: 44px;
   line-height: normal;
   box-sizing: border-box;
@@ -260,8 +260,14 @@ button:hover {
   height: auto;
 }
 
-input, textarea {
-  color: #fff; /* texto branco */
+input,
+textarea {
+  color: #fff;
+}
+
+select {
+  color: #000 !important;
+  background: #fff !important;
 }
 
 input::placeholder, textarea::placeholder {
@@ -470,6 +476,7 @@ body {
   }
 
   input,
+  select,
   textarea,
   button {
     font-size: 16px;
@@ -1281,10 +1288,14 @@ body {
       <input type="text" name="funcionario" placeholder="Nome completo do funcionário:">
     </div>
 
-  <div>
-    <label>Nome do Condomínio</label>
-    <input type="text" name="condominio" placeholder="Nome do condomínio:">
-  </div>
+<div>
+  <label>Nome do Condomínio</label>
+
+  <select id="condominio" name="condominio">
+      <option value="">Selecione o condomínio</option>
+  </select>
+
+</div>
 
 
     <div>
@@ -1329,6 +1340,32 @@ body {
 document.addEventListener("DOMContentLoaded", function () {
 
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxwoms0UiOLbaM7MRZ_U0sEaOD9m-8qiQJicEmNqBaWFTEuejQihIDqgf4IqCm7rh982A/exec";
+window.addEventListener("load", function () {
+  
+    fetch(URL_SCRIPT + "?lista=condominios")
+        .then(response => response.json())
+        .then(lista => {
+
+            const select = document.getElementById("condominio");
+
+            select.innerHTML = '<option value="">Selecione o condomínio</option>';
+
+            lista.forEach(function(nome){
+
+                const option = document.createElement("option");
+                option.value = nome;
+                option.textContent = nome;
+
+                select.appendChild(option);
+
+            });
+
+        })
+        .catch(function(erro){
+            console.error("Erro:", erro);
+        });
+
+});
 
 // ===== CANVAS =====
 const canvas = document.getElementById("assinaturaCanvas");
