@@ -1467,9 +1467,9 @@ function getRadioValue(name) {
 function coletarDados() {
   let dados = {};
 
-  document.querySelectorAll('input[type="text"], input[type="email"], input[type="date"], input[type="time"]').forEach((input, i) => {
-    let chave = input.name || "campo_" + i;
-    dados[chave] = input.value;
+  document.querySelectorAll('input[type="text"], input[type="email"], input[type="date"], input[type="time"], select').forEach((campo, i) => {
+    let chave = campo.name || "campo_" + i;
+    dados[chave] = campo.value;
   });
 
   let radios = new Set();
